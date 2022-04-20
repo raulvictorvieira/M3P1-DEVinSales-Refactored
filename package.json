@@ -1,8 +1,8 @@
 {
-  "name": "m2p2-devinsales",
+  "name": "m3p1-devinsales-refactored",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "https://github.com/DEVin-Teltec-BRy/M2P2-DEVinSales.git",
+  "repository": "https://github.com/raulvictorvieira/M3P1-DEVinSales-Refactored",
   "license": "MIT",
   "dependencies": {
     "bcrypt": "^5.0.1",
