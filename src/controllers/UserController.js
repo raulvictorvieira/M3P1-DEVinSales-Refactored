@@ -140,7 +140,7 @@ module.exports = {
         }
       }
       */
-      Logger.info(`Usuários listados com sucesso.`);
+      Logger.info(`Usuário listado com sucesso.`);
       return res.status(200).send({ users });
     } catch (error) {
       Logger.error(`Erro na aplicação: ${error.message} - ${error.status}`);
