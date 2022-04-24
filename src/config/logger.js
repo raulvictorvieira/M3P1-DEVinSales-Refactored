@@ -32,7 +32,7 @@ const level = () => {
     return isDevelopment ? 'debug' : 'warn';
 }
 
-const logger = winston.createLogger({
+const Logger = winston.createLogger({
     levels: levels,
     level: level(),
     format: format,
@@ -42,4 +42,4 @@ const logger = winston.createLogger({
     ],
 });
 
-module.exports = logger;
+module.exports = Logger;
