@@ -4,6 +4,7 @@ const City = require('../models/City')
 const State = require('../models/State')
 const { validateErrors } = require('../utils/functions')
 const { Op } = require("sequelize");
+const Logger = require('../config/logger');
 
 module.exports = {
 
@@ -59,7 +60,7 @@ module.exports = {
 
       const address = await Address.findAll({
         where: query,
-        attributes: ['id', 'street', 'cep'],
+        attributes: ['id', 'street', 'number', 'cep'],
         include: [
           {
             association: 'cities',
@@ -76,14 +77,17 @@ module.exports = {
 
       if (address.length === 0) {
         // #swagger.responses[204] = { description: 'No Content' }
+        Logger.warn(`Nenhum endereço encontrado com os filtros: ${JSON.stringify(query)}`);
         return res.status(204).send();
       } else {
         // #swagger.responses[200] = { description: 'Success!' }
+        Logger.info(`Endereços listados com sucesso.`);
         return res.status(200).json({ address });
       }
     } catch (error) {
       const message = validateErrors(error);
       // #swagger.responses[403] = { description: 'Forbidden' }
+      Logger.error(error.message);
       return res.status(403).send(message);
     }
   },
@@ -114,12 +118,13 @@ module.exports = {
 
       if (!address) {
         // #swagger.responses[404] = { description: 'Endereço não localizado!' }
+        Logger.warn(`Endereço não localizado com o id: ${address_id}`);
         return res.status(404).json({ message: "Endereço não localizado!" });
       }
 
       if (!street && !number && !complement && !cep) {
         // #swagger.responses[400] = { description: 'É necessário passar pelo menos um dado para alteração!' }
-
+        Logger.info(`É necessário passar pelo menos um dado para alteração!`);
         return res.status(400).json({ message: "É necessário passar pelo menos um dado para alteração!" });
       }
 
@@ -138,12 +143,13 @@ module.exports = {
       )
 
       // #swagger.responses[200] = { description: 'Endereço alterado com sucesso!' }
-
+      Logger.info(`Endereço alterado com sucesso!`);
       return res.status(200).json({ message: "Endereço alterado com sucesso!" });
 
     } catch (error) {
       const message = validateErrors(error);
       // #swagger.responses[403] = { description: 'Você não tem autorização para este recurso!' }
+      Logger.error(error.message);
       return res.status(403).send(message);
     }
 
@@ -160,7 +166,7 @@ module.exports = {
 
       if (!address) {
         //#swagger.responses[404] = {description: 'Not Found'}
-
+        Logger.warn(`Endereço não localizado com o id: ${address_id}`);
         return res.status(404).send({ message: 'Endreço não encontrado.' });
       }
 
@@ -172,7 +178,7 @@ module.exports = {
 
       if (deliveryUsing.length > 0) {
         //#swagger.response[400] = {description: 'Bad Request'}
-
+        Logger.warn(`Endereço não pode ser deletado pois está sendo utilizado em uma entrega!`);
         return res
           .status(400)
           .send({ message: 'Endereço em uso. Não pode ser deletado.' });
@@ -181,10 +187,12 @@ module.exports = {
       await address.destroy();
       console.log('DESTROYED');
       //#swagger.response[204] = {description: 'No Content' }
+      Logger.info(`Endereço deletado com sucesso!`);
       return res.status(204).send();
     } catch (error) {
       console.log(error);
       const message = validateErrors(error);
+      Logger.error(error.message);
       return res.status(400).send({ message: message });
     }
   },
@@ -255,6 +263,7 @@ module.exports = {
       });
 
       if (state.length === 0) {
+        Logger.warn(`Estado não localizado com o id: ${state_id}`);
         return res.status(404).send({ message: "Couldn't find any state with the given 'state_id'" })
       }
 
@@ -263,32 +272,41 @@ module.exports = {
       });
 
       if (city.length === 0) {
+        Logger.warn(`Cidade não localizada com o id: ${city_id}`);
         return res.status(404).send({ message: "Couldn't find any city with the given 'city_id'" })
       }
       if (city[0].state_id !== state[0].id) {
+        Logger.warn(`Cidade não pertence ao estado com o id: ${state_id}`);
         return res.status(400).send({ message: "The 'city_id' returned a city that doesn't match with the given 'state_id'" })
       }
       const addressObjKeys = ['street', 'number', 'cep']
       if (addressObjKeys.every(key => key in addressData)) {
         if (typeof addressData.street !== 'string') {
+          Logger.warn(`Rua não é uma string!`);
           return res.status(400).send({ message: "The 'street' param must be a string" })
         } else if (addressData.street.length === 0) {
+          Logger.warn(`Rua não pode ser vazia!`);
           return res.status(400).send({ message: "The 'street' param cannot be empty" })
         }
         if (isNaN(addressData.number)) {
+          Logger.warn(`O parametro number não é um número!`);
           return res.status(400).send({ message: "The 'number' param must be a number" })
         }
         if (typeof addressData.cep !== 'string') {
+          Logger.warn(`O parametro cep não é uma string!`);
           return res.status(400).send({ message: "The 'street' param must be a string" })
         }
         else if (addressData.cep.length < 8 || addressData.cep.length > 9) {
+          Logger.warn(`O parametro cep deve ter 8 ou 9 caracteres!`);
           return res.status(400).send({ message: "The 'cep' param is invalid" })
         }
         else if (addressData.cep.length === 8 && isNaN(addressData.cep)) {
+          Logger.warn(`O parametro cep deve ter 8 caracteres e ser um número!`);
           return res.status(400).send({ message: "The 'cep' param format is invalid" })
         }
         else if (addressData.cep.length === 9) {
           if (addressData.cep[5] !== '-') {
+            Logger.warn(`O parametro cep deve ter 8 caracteres e ser um número!`);
             return res.status(400).send({ message: "The 'cep' param format is invalid" })
           } else {
             addressData.cep = addressData.cep.replace('-', '');
@@ -296,6 +314,7 @@ module.exports = {
         }
       }
       else {
+        Logger.warn(`O objeto não possui todos os campos necessários!`);
         return res.status(400).send({ message: "The 'street', 'number' and 'cep' params are required in the req body" })
       }
 
@@ -319,6 +338,7 @@ module.exports = {
       });
 
       if (checkDuplicate.length) {
+        Logger.warn(`Endereço duplicado!`);
         return res.status(200).send({ message: "Endereço já existente! Não foi possível adicionar o endereço.", address_id: checkDuplicate[0].id });
       }
 
@@ -339,10 +359,12 @@ module.exports = {
         };
 
       const address = await Address.create(newAddress)
+      Logger.info(`Endereço adicionado com sucesso!`);
       return res.status(201).send({ address_id: address.id });
 
     } catch (error) {
       const message = validateErrors(error);
+      Logger.error(error.message);
       return res.status(400).send(message);
     }
   },
