@@ -394,6 +394,34 @@
             "description": "Forbidden"
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "Cargos e Permissões"
+        ],
+        "description": "Endpoint para deletar um cargo. O id do cargo deve ser enviado por params.",
+        "parameters": [
+          {
+            "name": "role_id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
       }
     },
     "/api/v1/permissions": {
