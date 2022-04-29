@@ -1,6 +1,7 @@
 const Role = require("../models/Role");
 const Permission = require("../models/Permission");
 const { validateErrors } = require("../utils/functions");
+const Logger = require("../config/logger");
 
 module.exports = {
   async index(req, res) {
@@ -28,9 +29,11 @@ module.exports = {
           },
         ],
       });
+      Logger.info(`Cargos listados com sucesso.`);
       return res.status(200).send({ roles });
     } catch (error) {
       const message = validateErrors(error);
+      Logger.error(error.message);
       return res.status(400).send(message);
     }
   },
@@ -75,9 +78,11 @@ module.exports = {
          /* #swagger.responses[200] = { 
             schema: { $ref: "#/definitions/ResRole" }
         } */
+      Logger.info(`Cargo criado com sucesso.`);
       return res.status(200).send({ message: "Cargo criado com sucesso." });
     } catch (error) {
       const message = validateErrors(error);
+      Logger.error(error.message);
       return res.status(400).send(message);
     }
   },
@@ -129,12 +134,14 @@ module.exports = {
       /* #swagger.responses[200] = { 
                   schema: {"message": "Permissões vinculadas com sucesso."}
               } */
-
+      
+      Logger.info(`Permissões vinculadas com sucesso.`);
       return res
         .status(200)
         .send({ message: "Permissões vinculadas com sucesso." });
     } catch (error) {
       const message = validateErrors(error);
+      Logger.error(error.message);
       return res.status(400).send(message);
     }
   }

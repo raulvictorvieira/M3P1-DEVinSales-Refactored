@@ -1,5 +1,6 @@
 const Permission = require('../models/Permission');
 const { validateErrors } = require('../utils/functions')
+const Logger = require('../config/logger');
 
 module.exports = {
     async create(req, res) {
@@ -29,9 +30,11 @@ module.exports = {
                 }
             }
             */
+            Logger.info(`Permissão criado com sucesso.`)
             return res.status(200).send({ message: 'Permissão criado com sucesso.' })
         } catch (error) {
             const message = validateErrors(error)
+            Logger.error(error.message)
             return res.status(400).send(message)
         }
     }
