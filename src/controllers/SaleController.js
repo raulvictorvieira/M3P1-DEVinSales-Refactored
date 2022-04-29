@@ -1,16 +1,13 @@
 const { literal } = require('sequelize');
 const { decode } = require("jsonwebtoken");
-const { validateErrors, daysToDelivery } = require('../utils/functions');
-
-const salesRoutes = require('../routes/v1/sales.routes');
-
+const { daysToDelivery } = require('../utils/functions');
 const Sale = require('../models/Sale')
 const User = require("../models/User");
 const ProductsSales = require("../models/ProductsSales");
 const Product = require("../models/Product");
 const Address = require('../models/Address');
 const Delivery = require('../models/Deliveries');
-const State = require('../models/State');
+const Logger = require('../config/logger');
 
 
 
@@ -43,13 +40,14 @@ module.exports = {
         buyer_id: user_id,
         dt_sale: dt_sale
       })
+      Logger.info(`Venda criada com sucesso: ${result.id}`)
       return res.status(201).send({ 'created': "id-" + result.id })
 
     } catch (error) {
       if (error.message.includes('sales_seller_id_fkey')) return res.status(404).send({ message: "seller_id inexistente" })
       if (error.message.includes('sales_buyer_id_fkey')) return res.status(404).send({ message: "buyer_id inexistente" })
       if (error.message.includes('invalid input syntax')) return res.status(400).send({ message: "User_id em formato inválido" })
-
+      Logger.error(error.message);
       res.status(400).send({ message: error.message })
     }
 
@@ -81,6 +79,7 @@ module.exports = {
         buyer_id: buyer_id,
         dt_sale: dt_sale
       })
+      Logger.info(`Venda criada com sucesso: ${result.id}`)
       return res.status(201).send({ 'created': "id-" + result.id })
 
     } catch (error) {
@@ -89,6 +88,7 @@ module.exports = {
       if (error.message.includes('sales_buyer_id_fkey')) return res.status(404).send({ message: "buyer_id inexistente" })
       if (error.message.includes('invalid input syntax')) return res.status(400).send({ message: "User_id em formato inválido" })
 
+      Logger.error(error.message);
       res.status(400).send({ message: error.message })
     }
   },
@@ -113,14 +113,17 @@ module.exports = {
       });
 
       if (!findUser) {
+        Logger.warn(`Usuário não encontrado: ${id}`)
         return res.status(400).send({ message: "Este usuario não existe!" });
       }
       if (findSaler.length === 0) {
+        Logger.warn(`Usuário não possui vendas: ${id}`)
         return res.status(400).send({ message: "Este usuario não possui vendas!" });
       }
+      Logger.info(`Vendas do usuario: ${id} retornadas com sucesso`)
       return res.status(200).json(findSaler)
     } catch (error) {
-
+      Logger.error(error.message);
       return res.status(400).send({ message: "Erro deconhecido!" })
     }
   },
@@ -131,6 +134,7 @@ module.exports = {
       const sale_id = req.params.sale_id
 
       if (!sale_id) {
+        Logger.warn(`ID da venda não informado`)
         return res.status(400).send({ message: 'É necessário passar o ID de vendas' })
       }
 
@@ -166,6 +170,7 @@ module.exports = {
 
 
       if (!sale) {
+        Logger.warn(`Venda não encontrada: ${sale_id}`)
         return res.status(404).send({ message: 'Não existe venda para este ID' })
       }
       const productIdList = sale.products.map(p => p.product_id)
@@ -195,9 +200,11 @@ module.exports = {
         products: productsWithName
       }
 
+      Logger.info(`Venda ${sale_id} retornada com sucesso`)
       return res.status(200).json(response)
 
     } catch (error) {
+      Logger.error(error.message);
       return res.status(500).json(error.message)
     }
   },
@@ -223,13 +230,16 @@ module.exports = {
       });
 
       if (salesData.length == 0) {
+        Logger.warn(`Usuário não possui vendas: ${user_id}`)
         return res.status(204).json({ message: "no content" });
       }
 
+      Logger.info(`Vendas do usuario: ${user_id} retornadas com sucesso`)
       return res.status(200).json(salesData);
 
     } catch (error) {
 
+      Logger.error(error.message);
       return res.status(201).json({ message: "erro ao listar dados de vendas" });
     }
   },
@@ -249,6 +259,7 @@ module.exports = {
       const { address_id, delivery_forecast } = req.body;
 
       if (address_id.length == 0) {
+        Logger.warn(`Endereço não informado`)
         return res.status(400).json({ message: "Bad Request" });
       }
 
@@ -259,6 +270,7 @@ module.exports = {
       });
 
       if (sale.length == 0) {
+        Logger.warn(`Venda não encontrada: ${sale_id}`)
         return res.status(404).json({ message: "id_sale not found" });
       }
 
@@ -269,6 +281,7 @@ module.exports = {
       });
 
       if (address.length == 0) {
+        Logger.warn(`Endereço não encontrado: ${address_id}`)
         return res.status(404).json({ message: "address_id not found" });
       }
 
@@ -277,6 +290,7 @@ module.exports = {
       const dataForecastParsed = Date.parse(delivery_forecast);
 
       if (dataForecastParsed < dataParsed) {
+        Logger.warn(`Data de entrega inválida`)
         return res.status(400).json({ message: "Bad request" });
       }
 
@@ -289,6 +303,7 @@ module.exports = {
       });
 
       if (deliveryBooked.length >= 1) {
+        Logger.warn(`Venda já possui entrega`)
         return res.status(400).json({ message: "Já existe um agendamento de entrega para esta venda" });
       }
 
@@ -297,9 +312,10 @@ module.exports = {
         sale_id: sale_id,
         delivery_forecast: deliverydate
       })
-
+      Logger.info(`Entrega cadastrada com sucesso`)
       return res.status(200).json({ message: "Entrega agendada com sucesso" });
     } catch (error) {
+      Logger.error(error.message);
       return res.status(400).json({ message: "Bad request" });
     }
 
@@ -341,21 +357,25 @@ module.exports = {
       }
 
       if (!product_id) {
+        Logger.warn(`product_id não informado`)
         return res.status(400).send({ message: "Tem que enviar product_id" });
       }
 
       if (unit_price <= 0 || amount <= 0) {
+        Logger.warn(`Valor unitário ou quantidade inválido`)
         return res
           .status(400)
           .send({ message: "unit_price e amount tem que ser maior que 0" });
       }
       const validProductId = await Product.findByPk(product_id);
       if (!validProductId) {
+        Logger.warn(`product_id não encontrado: ${product_id}`)
         return res.status(404).send({ message: "product_id não existe" });
       }
 
       const validSellerId = await User.findByPk(seller_id);
       if (!validSellerId) {
+        Logger.warn(`seller_id não encontrado: ${seller_id}`)
         return res.status(404).send({ message: "seller_id não existe" });
       }
 
@@ -378,8 +398,10 @@ module.exports = {
           amount: amount,
         },
       });
+      Logger.info(`Venda registrada com sucesso`)
       return res.status(201).json({ 'created': "id-" + productSale.id });
     } catch (error) {
+      Logger.error(error.message);
       return res.status(400).send(error.message);
     }
   },
