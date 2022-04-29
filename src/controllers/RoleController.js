@@ -144,5 +144,31 @@ module.exports = {
       Logger.error(error.message);
       return res.status(400).send(message);
     }
-  }
+  },
+
+  async delete(req, res) {
+    // #swagger.tags = ['Cargos e Permissões']
+    // #swagger.description = 'Endpoint para deletar um cargo. O id do cargo deve ser enviado por params.'
+
+    try {
+      const { role_id } = req.params;
+
+      const role = await Role.findByPk(role_id);
+
+      if (!role) {
+        //#swagger.responses[404] = {description: 'Not Found'}
+        Logger.warn(`Cargo não localizado com o id: ${role_id}`);
+        return res.status(404).send({ message: 'Cargo não encontrado.' });
+      }
+
+      await role.destroy();
+      //#swagger.response[204] = {description: 'No Content' }
+      Logger.info(`Cargo deletado com sucesso!`);
+      return res.status(204).send({ message: 'Cargo deletado com sucesso!' });
+    } catch (error) {
+      const message = validateErrors(error);
+      Logger.error(error.message);
+      return res.status(400).send({ message: message });
+    }
+  },
 };
