@@ -1,5 +1,6 @@
 const { validateErrors } = require("../utils/functions");
 const UserServices = require("../services/user.service");
+const Logger = require("../config/logger");
 
 
 module.exports = {
@@ -40,8 +41,12 @@ module.exports = {
           }
         }
       */
+
+      Logger.info(`Usuário ${user.name} criado com sucesso.`);
       return res.status(201).send({ response: user.id });
     } catch (error) {
+
+      Logger.error(`Erro na aplicação: ${error.message} - ${error.status}`);
       const message = validateErrors(error);
       /*
               #swagger.responses[400] = {
@@ -82,9 +87,10 @@ module.exports = {
       const token = await UserServices.beginSession(email, password);
 
       if (token.error) throw new Error(token.error);
-
+      Logger.info(`Token gerado com sucesso para o usuário ${email}`);
       return res.status(201).send({ token: token });
     } catch (error) {
+      Logger.error(`Erro na aplicação: ${error.message} - ${error.status}`);
       const message = validateErrors(error);
       return res.status(400).send(message);
     }
@@ -134,9 +140,10 @@ module.exports = {
         }
       }
       */
-
+      Logger.info(`Usuário listado com sucesso.`);
       return res.status(200).send({ users });
     } catch (error) {
+      Logger.error(`Erro na aplicação: ${error.message} - ${error.status}`);
       const message = validateErrors(error);
       /*
        #swagger.responses[400] = {
@@ -187,9 +194,10 @@ module.exports = {
       if (message.error) {
         throw new Error(message.error);
       }
-
+      Logger.info(`Usuário ${user_id} deletado com sucesso.`);
       return res.status(200).json({ message });
     } catch (error) {
+      Logger.error(`Erro na aplicação: ${error.message} - ${error.status}`);
       return res.status(400).json({ error: error.message });
     }
   },
