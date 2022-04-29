@@ -3,6 +3,7 @@ const City = require("../models/City");
 const { validateErrors } = require("../utils/functions");
 const { ACCENT, UNNACENT } = require("../utils/constants/accents");
 const { Op, where, fn, col } = require("sequelize");
+const Logger = require("../config/Logger");
 
 module.exports = {
   async index(req, res) {
@@ -56,8 +57,10 @@ module.exports = {
           ).values(),
         ];
         if (filteredStates.length === 0) {
+          Logger.info(`Nenhum estado encontrado com os filtros: ${names} e ${initials}`);
           return res.status(204).send();
         } else {
+          Logger.info(`Estados encontrados com sucesso`);
           return res.status(200).send(filteredStates);
         }
       }
@@ -65,14 +68,17 @@ module.exports = {
       else {
         const states = await State.findAll();
         if (states.length === 0) {
+          Logger.info(`Nenhum estado encontrado`);
           return res.status(204).send();
         }
         else {
+          Logger.info(`Estados encontrados com sucesso`);
           return res.status(200).send({ states });
         }
       }
     } catch (error) {
       const message = validateErrors(error);
+      Logger.error(error.message);
       return res.status(400).send(message);
     }
   },
@@ -92,6 +98,7 @@ module.exports = {
       const { state_id } = req.params;
 
       if (isNaN(state_id)) {
+        Logger.warn(`ID do estado inválido`);
         return res
           .status(400)
           .send({ message: "The 'state_id' param must be an integer" });
@@ -102,16 +109,19 @@ module.exports = {
       });
 
       if (state.length === 0) {
+        Logger.warn(`Estado não encontrado`);
         return res
           .status(404)
           .send({
             message: "Couldn't find any state with the given 'state_id'",
           });
       } else {
+        Logger.info(`Estado encontrado com sucesso`);
         return res.status(200).send(state[0]);
       }
     } catch (error) {
       const message = validateErrors(error);
+      Logger.error(error.message);
       return res.status(400).send(message);
     }
   },
@@ -132,6 +142,7 @@ module.exports = {
       });
 
       if (!state) {
+        Logger.warn(`Estado não encontrado`);
         return res.status(404).json({ message: "Estado não encontrado." });
       }
 
@@ -163,12 +174,15 @@ module.exports = {
       });
 
       if (!cities.length) {
+        Logger.warn(`Cidade não encontrada`);
         return res.status(204).json({});
       }
 
+      Logger.info(`Cidade(s) encontrada(s) com sucesso`);
       return res.status(200).json({ cities });
     } catch (error) {
       const message = validateErrors(error);
+      Logger.error(error.message);
       return res.status(400).send(message);
     }
   },
@@ -209,6 +223,7 @@ module.exports = {
       const state = await State.findByPk(state_id);
 
       if (!state) {
+        Logger.warn(`Estado não encontrado`);
         return res
           .status(404)
           .send({ message: "O Estado não existe no Banco de Dados" });
@@ -229,6 +244,7 @@ module.exports = {
       });
 
       if (city) {
+        Logger.warn(`Já existe uma cidade com este nome para o Estado`);
         return res
           .status(400)
           .send({
@@ -240,9 +256,11 @@ module.exports = {
         name,
         state_id,
       });
+      Logger.info(`Cidade criada com sucesso`);
       return res.status(201).send({ city: newCity.id });
     } catch (error) {
       const message = validateErrors(error);
+      Logger.error(error.message);
       return res.status(403).send(message);
     }
   }
