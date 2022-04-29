@@ -5,6 +5,8 @@
   "repository": "https://github.com/raulvictorvieira/M3P1-DEVinSales-Refactored",
   "license": "MIT",
   "dependencies": {
+    "@sentry/node": "^6.19.7",
+    "@sentry/tracing": "^6.19.7",
     "bcrypt": "^5.0.1",
     "cors": "^2.8.5",
     "dotenv": "^16.0.0",
