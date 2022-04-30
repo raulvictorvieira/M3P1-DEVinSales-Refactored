@@ -3,7 +3,7 @@ const City = require("../models/City");
 const { validateErrors } = require("../utils/functions");
 const { ACCENT, UNNACENT } = require("../utils/constants/accents");
 const { Op, where, fn, col } = require("sequelize");
-const Logger = require("../config/Logger");
+const Logger = require("../config/logger");
 
 module.exports = {
   async index(req, res) {
