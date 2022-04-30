@@ -2,6 +2,7 @@
 
 - [Tecnologias](#tech)
 - [Como Utilizar](#settings)
+- [Deploys](#deploys)
 
 <a id="tech"></a>
 
@@ -15,6 +16,11 @@ O projeto desenvolvido utiliza as seguintes tecnologias:
 - [Sequelize](https://sequelize.org/)
 - [Postgres](https://www.postgresql.org/)
 - [Swagger](https://swagger.io/)
+- [Winston](https://www.npmjs.com/package/winston)
+- [Morgan](https://www.npmjs.com/package/morgan)
+- [Sentry](https://www.sentry.io/)
+- [nginx](https://www.nginx.com/)
+- [pm2](https://pm2.keymetrics.io/)
 
 <a id="settings"></a>
 
@@ -93,3 +99,15 @@ $ yarn swagger-autogen
 # ou
 $ npm run swagger-autogen
 ```
+
+<a id="deploys"></a>
+## Deploys
+- [Prod](http://23.20.49.237)
+- [Staging](http://18.212.93.96/)
+
+## Nova Feature
+
+```bash
+# delete
+endpoint: /roles/:role_id
+"Endpoint para deletar um cargo"
