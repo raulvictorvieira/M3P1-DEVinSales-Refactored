@@ -1,4 +1,7 @@
+require("dotenv").config();
 const swaggerAutogen = require("swagger-autogen")();
+
+const base_url = process.env.SWAGGER_URL
 
 const doc = {
   info: {
@@ -6,8 +9,8 @@ const doc = {
     description:
       "Estas é a documentação para as desenvolvedores que utilizaram nossa API.",
   },
-  host: "localhost:3333",
-  schemes: ["http"],
+  host: base_url,
+  schemes: ["http", "https"],
   securityDefinitions: {
     bearerAuth: {
       type: "apiKey",

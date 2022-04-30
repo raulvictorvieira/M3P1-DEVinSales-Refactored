@@ -5,10 +5,11 @@
     "description": "Estas é a documentação para as desenvolvedores que utilizaram nossa API.",
     "version": "1.0.0"
   },
-  "host": "localhost:3333",
+  "host": "localhost:3333/",
   "basePath": "/",
   "schemes": [
-    "http"
+    "http",
+    "https"
   ],
   "securityDefinitions": {
     "bearerAuth": {
